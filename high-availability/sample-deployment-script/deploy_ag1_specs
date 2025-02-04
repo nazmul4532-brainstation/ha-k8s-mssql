@@ -1,0 +1,5 @@
+/tmp/kube_agent_deploy-hidorywdag1/operator.yaml
+/tmp/kube_agent_deploy-hidorywdag1/sql-secrets.yaml
+/tmp/kube_agent_deploy-hidorywdag1/pv.yaml
+/tmp/kube_agent_deploy-hidorywdag1/sqlserver.yaml
+/tmp/kube_agent_deploy-hidorywdag1/ag-services.yaml
