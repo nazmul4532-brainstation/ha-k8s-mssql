@@ -285,7 +285,7 @@ def deploy_operator(namespace, operator_yaml):
         else:
             return False, event["object"]
 
-    extensions_api = kclient.ApiextensionsV1beta1Api()
+    extensions_api = kclient.ApiextensionsV1Api()
 
     # We need to sleep here.
     # Kubernetes client API will raise the following exception if the operator

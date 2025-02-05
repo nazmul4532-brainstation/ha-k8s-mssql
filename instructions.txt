@@ -35,3 +35,56 @@ kubectl create secret generic sql-secrets \
   --from-literal=sapassword="Passw0rd1" \
   --from-literal=masterkeypassword="Passw0rd1" \
   --namespace ag1
+  
+/opt/mssql-tools/bin/sqlcmd -S mssql-sql-statefull-deploy.mssql.svc.cluster.local -U sa -P Passw0rd1
+
+/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Passw0rd1" -C
+
+kubectl cp mssql/mssql-sql-statefull-deploy-0:/var/opt/mssql/data/TestDB_Backup.bak ./TestDB_Backup.bak
+kubectl cp ./TestDB_Backup.bak mssql/mssql-sql-statefull-deploy-0:/var/opt/mssql/data/TestDB_Backup.bak
+
+/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Passw0rd1' -Q "RESTORE DATABASE music FROM DISK = '/var/opt/mssql/data/TestDB_Backup.bak' WITH REPLACE" -C
+
+
+#Install mssql and connect it to sqlpad... THEN
+
+BACK UP AND RESTORE PROCESS
+....
+CREATE DATABASE TestDB;
+
+CREATE TABLE TestDB.dbo.TestTable (
+    ID INT PRIMARY KEY,
+    Name NVARCHAR(100)
+);
+
+SELECT * FROM TestDB.INFORMATION_SCHEMA.TABLES;
+
+INSERT INTO TestDB.dbo.TestTable (id, name, age)  
+VALUES  
+    (1, 'Alice'),  
+    (2, 'Bob'),  
+    (3, 'Charlie');
+
+SELECT * FROM TestDB.dbo.TestTable;
+
+
+BACKUP DATABASE TestDB  
+TO DISK = '/var/opt/mssql/data/TestDB_Backup.bak'  
+WITH FORMAT, INIT, COMPRESSION, STATS = 10;
+
+
+kubectl cp mssql/mssql-sql-statefull-deploy-0:/var/opt/mssql/data/TestDB_Backup.bak ./TestDB_Backup.bak
+
+helm uninstall mssql -n mssql
+#delete pvc
+
+helm install mssql . -n mssql
+kubectl cp ./TestDB_Backup.bak mssql/mssql-sql-statefull-deploy:/var/opt/mssql/data/TestDB_Backup.bak
+
+RESTORE DATABASE TestDB  
+FROM DISK = '/var/opt/mssql/data/TestDB_Backup.bak'  
+WITH MOVE 'TestDB' TO '/var/opt/mssql/data/TestDB.mdf',  
+MOVE 'TestDB_log' TO '/var/opt/mssql/data/TestDB.ldf',  
+REPLACE, RECOVERY, STATS = 10;
+
+SELECT * FROM TestDB.dbo.TestTable;
