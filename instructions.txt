@@ -88,3 +88,44 @@ MOVE 'TestDB_log' TO '/var/opt/mssql/data/TestDB.ldf',
 REPLACE, RECOVERY, STATS = 10;
 
 SELECT * FROM TestDB.dbo.TestTable;
+
+
+
+
+---
+ON ALL
+USE master;
+CREATE ENDPOINT Hadr_endpoint
+STATE = STARTED
+AS TCP (LISTENER_PORT = 5022)
+FOR DATA_MIRRORING (ROLE = ALL, AUTHENTICATION = WINDOWS NEGOTIATE, ENCRYPTION = REQUIRED ALGORITHM AES);
+
+GRANT CONNECT ON ENDPOINT::[Hadr_endpoint] TO [sa];
+
+CREATE LOGIN ag_replica WITH PASSWORD = 'Passw0rd1';
+GRANT CONNECT ON ENDPOINT::[Hadr_endpoint] TO [ag_replica];
+
+SELECT name, protocol_desc, state_desc, type_desc 
+FROM sys.endpoints WHERE type_desc = 'DATABASE_MIRRORING';
+
+ON PRIMARY
+CREATE AVAILABILITY GROUP AG
+WITH (CLUSTER_TYPE = NONE)
+FOR DATABASE TestDB
+REPLICA ON
+    N'mssql-sql-statefull-deploy-0'
+        WITH (ENDPOINT_URL = 'TCP://mssql-sql-statefull-deploy-0.mssql-sql-statefull-deploy.mssql.svc.cluster.local:5022',
+              AVAILABILITY_MODE = SYNCHRONOUS_COMMIT, 
+              FAILOVER_MODE = MANUAL),
+    N'mssql-sql-statefull-deploy-1'
+        WITH (ENDPOINT_URL = 'TCP://mssql-sql-statefull-deploy-1.mssql-sql-statefull-deploy.mssql.svc.cluster.local:5022',
+              AVAILABILITY_MODE = SYNCHRONOUS_COMMIT, 
+              FAILOVER_MODE = MANUAL),
+    N'mssql-sql-statefull-deploy-2'
+        WITH (ENDPOINT_URL = 'TCP://mssql-sql-statefull-deploy-2.mssql-sql-statefull-deploy.mssql.svc.cluster.local:5022',
+              AVAILABILITY_MODE = SYNCHRONOUS_COMMIT, 
+              FAILOVER_MODE = MANUAL);
+
+ON SECONDARY
+ALTER AVAILABILITY GROUP AG JOIN WITH (CLUSTER_TYPE = NONE);
+GO
