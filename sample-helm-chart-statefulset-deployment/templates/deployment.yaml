@@ -27,7 +27,6 @@ spec:
             - /bin/bash
             - -c
             - cp /var/opt/config/mssql.conf /var/opt/mssql/mssql.conf && /opt/mssql/bin/sqlservr
-            - /opt/mssql/bin/mssql-conf set hadr.hadrenabled 1
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -40,8 +39,8 @@ spec:
              value: "{{ .Values.ACCEPT_EULA.value | upper}}"
            - name: MSSQL_AGENT_ENABLED
              value: "{{ .Values.MSSQL_AGENT_ENABLED.value}}"
-           - name: MSSQL_ENABLE_HADR
-             value: "1"
+          #  - name: MSSQL_ENABLE_HADR
+          #    value: "1"
            - name: SA_PASSWORD
              valueFrom:
               secretKeyRef:
@@ -64,4 +63,4 @@ spec:
        - ReadWriteOnce
        resources:
         requests:
-         storage: 8Gi
+         storage: 50Gi

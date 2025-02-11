@@ -1,0 +1,6 @@
+helm install confluent-operator confluentinc/confluent-for-kubernetes -n abbl-qa --create-namespace -f kafka/values.yaml
+
+kubectl apply -f confluent-platform.yaml
+
+
+helm install kafka-ui kafka-ui/kafka-ui -n abbl-qa -f kafka-ui/values.yaml

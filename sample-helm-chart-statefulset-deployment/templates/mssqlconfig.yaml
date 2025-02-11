@@ -12,8 +12,8 @@ data:
     captureminiandfull = true
     coredumptype = full
     
-    [hadr]
-    hadrenabled = 1
+    # [hadr]
+    # hadrenabled = 1
     
     [language]
     lcid = 1033

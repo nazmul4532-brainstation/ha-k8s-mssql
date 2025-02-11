@@ -79,7 +79,8 @@ helm uninstall mssql -n mssql
 #delete pvc
 
 helm install mssql . -n mssql
-kubectl cp ./TestDB_Backup.bak mssql/mssql-sql-statefull-deploy:/var/opt/mssql/data/TestDB_Backup.bak
+
+kubectl cp ./abbldev_11_2_2025.bak abbl-qa/mssql-sql-stateful-deploy-0:/var/opt/mssql/data/abbldev_11_2_2025.bak
 
 RESTORE DATABASE TestDB  
 FROM DISK = '/var/opt/mssql/data/TestDB_Backup.bak'  
@@ -129,3 +130,46 @@ REPLICA ON
 ON SECONDARY
 ALTER AVAILABILITY GROUP AG JOIN WITH (CLUSTER_TYPE = NONE);
 GO
+
+
+
+
+
+
+
+
+
+
+
+
+DECLARE @name VARCHAR(255)
+DECLARE @fileName VARCHAR(255)
+
+DECLARE db_cursor CURSOR FOR 
+SELECT name 
+FROM sys.databases 
+WHERE state_desc = 'ONLINE' AND name NOT IN ('master', 'model', 'msdb', 'tempdb')
+
+OPEN db_cursor  
+FETCH NEXT FROM db_cursor INTO @name  
+
+WHILE @@FETCH_STATUS = 0  
+BEGIN  
+    SET @fileName = '/var/opt/mssql/' + @name + '_backup_' + CONVERT(VARCHAR(20), GETDATE(), 112) + '.bak'
+    EXEC('BACKUP DATABASE [' + @name + '] TO DISK = ''' + @fileName + '''')
+
+    FETCH NEXT FROM db_cursor INTO @name  
+END  
+
+CLOSE db_cursor  
+DEALLOCATE db_cursor
+
+
+
+
+
+BACKUP DATABASE abbldev 
+TO DISK = 'C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Backup\abbldev_11_2_2025.bak' 
+WITH FORMAT,  
+MEDIANAME = 'SQLServerBackups',  
+NAME = 'Full Backup of abbldev';

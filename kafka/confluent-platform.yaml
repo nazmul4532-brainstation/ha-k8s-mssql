@@ -1,0 +1,35 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: KRaftController
+metadata:
+  name: kraftcontroller
+spec:
+  dataVolumeCapacity: 5G
+  image:
+    application: docker.io/confluentinc/cp-server:7.6.0
+    init: confluentinc/confluent-init-container:2.8.0
+  replicas: 1
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Kafka
+metadata:
+  name: kafka
+spec:
+  replicas: 1
+  listeners:
+    external:
+      externalAccess:
+        type: nodePort
+        nodePort:
+          host: 172.16.231.70
+          nodePortOffset: 31013
+  configOverrides:
+    server:
+      - auto.create.topics.enable=true
+  image:
+    application: confluentinc/cp-server:7.6.0
+    init: confluentinc/confluent-init-container:2.8.0
+  dataVolumeCapacity: 5Gi
+  dependencies:
+    kRaftController:
+      clusterRef:
+        name: kraftcontroller
